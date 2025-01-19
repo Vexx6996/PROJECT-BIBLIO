@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int id;
+    char titre[100];
+    char auteur[100];
+    char description[100];
+    float prix;
+    char categorie[100];
+    int dispo;
+    char nom[100];
+} LIVRE;
+
+
+int saisirId() {
+    int id, valid;
+    while (1) {
+        printf("Entrez l'ID du livre: ");
+        valid = scanf("%d", &id);
+        while (getchar() != '\n');
+        if (valid == 1) {
+            return id;
+        } else {
+            printf("Erreur: vous avez entre un caract\, l'ID doit etre un entier.\n");
+        }
+    }
+}
+
+
+int ajouter(LIVRE L[], int livreCounteur) {
+    printf("Entrez votre nom: ");
+    scanf(" %s", L[livreCounteur].nom);
+
+    L[livreCounteur].id = saisirId();
+
+    printf("Entrez le titre: ");
+    scanf(" %s", L[livreCounteur].titre);
+    printf("Entrez l'auteur: ");
+    scanf(" %s", L[livreCounteur].auteur);
+    printf("Entrez la description: ");
+    scanf(" %s", L[livreCounteur].description);
+    printf("Entrez le prix: ");
+    scanf("%f", &L[livreCounteur].prix);
+    printf("Entrez la categorie: ");
+    scanf(" %s", L[livreCounteur].categorie);
+
+    printf("Le livre est-il disponible ? (1 pour oui, 0 pour non): ");
+    scanf("%d", &L[livreCounteur].dispo);
+    printf("Livre ajoute !\n");
+
+
+    return livreCounteur + 1;
+}
+
+
+void modifier(LIVRE L[], int livreCounteur) {
+    int id, trouve = 0;
+    id = saisirId();
+    for (int i = 0; i < livreCounteur; i++) {
+        if (L[i].id == id) {
+            trouve = 1;
+            printf("Entrez les nouvelles informations:\n");
+            printf("Titre: ");
+            scanf(" %s", L[i].titre);
+            printf("Auteur: ");
+            scanf(" %s", L[i].auteur);
+            printf("Description: ");
+            scanf(" %s", L[i].description);
+            printf("Prix: ");
+            scanf("%f", &L[i].prix);
+            printf("Categorie: ");
+            scanf(" %s", L[i].categorie);
+            printf("Le livre est-il disponible ? (1 pour oui, 0 pour non): ");
+            scanf("%d", &L[i].dispo);
+            printf("Modifier!\n");
+            break;
+        }
+    }
+    if (!trouve) {
+        printf("Livre non trouver.\n");
+    }
+}
+
+
+int supprimer(LIVRE L[], int livreCounteur) {
+    int id, found = 0;
+    id = saisirId();
+    for (int i = 0; i < livreCounteur; i++) {
+        if (L[i].id == id) {
+            found = 1;
+            for (int j = i; j < livreCounteur - 1; j++) {
+                L[j] = L[j + 1];
+            }
+            livreCounteur--;
+            printf("Livre supprimer avec succ\u00e8s!\n");
+            break;
+        }
+    }
+    if (!found) {
+        printf("Livre non trouver.\n");
+    }
+    return livreCounteur;
+}
+
+
+void afficherLivres(LIVRE L[], int livreCounteur) {
+    if (livreCounteur == 0) {
+        printf("Aucun livre dans la biblio.\n");
+    } else {
+        printf("\nListe des livres dans la biblio :\n");
+        for (int i = 0; i < livreCounteur; i++) {
+            printf("Livre %d :\n", i + 1);
+            printf("Titre : %s\n", L[i].titre);
+            printf("Auteur : %s\n", L[i].auteur);
+            printf("Prix : %.2f\n", L[i].prix);
+            printf("ID : %d\n", L[i].id);
+            printf("Nom d'utilisateur : %s\n", L[i].nom);
+            printf("Description : %s\n", L[i].description);
+            printf("Categorie : %s\n", L[i].categorie);
+            printf("Disponibilite : %d\n", L[i].dispo);
+            printf("\n");
+        }
+    }
+}
+
+
+void trierLivres(LIVRE L[], int livreCounteur) {
+    char critere[20];
+    LIVRE tmp;
+    printf("Trier par (titre / categorie) : ");
+    scanf("%s", critere);
+
+    for (int i = 0; i < livreCounteur - 1; i++) {
+        for (int j = i + 1; j < livreCounteur; j++) {
+            if ((strcmp(critere, "categorie") == 0 && strcmp(L[i].categorie, L[j].categorie) > 0) ||
+                (strcmp(critere, "titre") == 0 && strcmp(L[i].titre, L[j].titre) > 0)) {
+                tmp = L[i];
+                L[i] = L[j];
+                L[j] = tmp;
+            }
+        }
+    }
+    printf("Livres tries par %s.\n", critere);
+    afficherLivres(L, livreCounteur);
+}
+
+
+void rechercherLivre(LIVRE L[], int livreCounteur) {
+    char titreRecherche[100];
+    int trouve = 0;
+    printf("Entrez le titre du livre a rechercher : ");
+    scanf(" %s", titreRecherche);
+
+    for (int i = 0; i < livreCounteur; i++) {
+        if (strstr(L[i].titre, titreRecherche) != NULL) {
+            printf("Livre trouve : %s par %s, prix %.2f\n", L[i].titre, L[i].auteur, L[i].prix);
+            trouve = 1;
+        }
+    }
+
+    if (!trouve) {
+        printf("Aucun livre trouve avec ce titre.\n");
+    }
+}
+
+
+void stockerBibliotheque(LIVRE L[], int livreCounteur) {
+    FILE *f = fopen("bibliotheque.csv", "w");
+    if (f == NULL) {
+        printf("Erreur lors de l'ouverture du fichier pour le stockage.\n");
+        return;
+    }
+
+    for (int i = 0; i < livreCounteur; i++) {
+        fprintf(f, "%d,%s,%s,%s,%.2f,%s,%d,%s\n",
+                L[i].id, L[i].titre, L[i].auteur, L[i].description, L[i].prix, L[i].categorie, L[i].dispo, L[i].nom);
+    }
+
+    fclose(f);
+    printf("Bibliotheque stocke dans le fichier \"bibliotheque.csv\".\n");
+}
+
+int main() {
+    LIVRE livres[100];
+    int livreCounteur = 0;
+    int choice;
+
+    do {
+        printf("\n=== MENU ===\n");
+        printf("1. Ajouter un livre\n");
+        printf("2. Modifier un livre\n");
+        printf("3. Supprimer un livre\n");
+        printf("4. Afficher les livres\n");
+        printf("5. Trier les livres\n");
+        printf("6. Rechercher un livre\n");
+        printf("7. Stocker la bibliotheque\n");
+        printf("0. Quitter\n");
+        printf("Entrez votre choix: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                livreCounteur = ajouter(livres, livreCounteur);
+                break;
+            case 2:
+                modifier(livres, livreCounteur);
+                break;
+            case 3:
+                livreCounteur = supprimer(livres, livreCounteur);
+                break;
+            case 4:
+                afficherLivres(livres, livreCounteur);
+                break;
+            case 5:
+                trierLivres(livres, livreCounteur);
+                break;
+            case 6:
+                rechercherLivre(livres, livreCounteur);
+                break;
+            case 7:
+                stockerBibliotheque(livres, livreCounteur);
+                break;
+            case 0:
+                printf("Au revoir!\n");
+                break;
+            default:
+                printf("Choix invalide. Veuillez r\u00e9essayer.\n");
+        }
+    } while (choice != 0);
+
+    return 0;
+}
